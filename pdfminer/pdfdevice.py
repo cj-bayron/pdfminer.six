@@ -2,7 +2,7 @@
 
 import six
 
-from .pdffont import PDFUnicodeNotDefined
+from .pdffont import PDFUnicodeNotDefined, PDFCIDFont, PDFSimpleFont
 
 from . import utils
 
@@ -77,22 +77,27 @@ class PDFTextDevice(PDFDevice):
         if font.is_multibyte():
             wordspace = 0
         dxscale = .001 * fontsize * scaling
+
+        is_cid = isinstance(font, PDFCIDFont)
+
         if font.is_vertical():
             textstate.linematrix = self.render_string_vertical(
                 seq, matrix, textstate.linematrix, font, fontsize,
                 scaling, charspace, wordspace, rise, dxscale, ncs, graphicstate,
-                tj_index=tj_index)
+                tj_index=tj_index, is_cid=is_cid)
         else:
             textstate.linematrix = self.render_string_horizontal(
                 seq, matrix, textstate.linematrix, font, fontsize,
                 scaling, charspace, wordspace, rise, dxscale, ncs, graphicstate,
-                tj_index=tj_index)
+                tj_index=tj_index, is_cid=is_cid)
         return
 
     def render_string_horizontal(self, seq, matrix, pos,
                                  font, fontsize, scaling, charspace, wordspace,
-                                 rise, dxscale, ncs, graphicstate, tj_index=None):
+                                 rise, dxscale, ncs, graphicstate,
+                                 tj_index=None, is_cid=False):
         (x, y) = pos
+
         needcharspace = False
         for ix, obj in enumerate(seq):
             if utils.isnumber(obj):
@@ -120,7 +125,7 @@ class PDFTextDevice(PDFDevice):
                                           font, fontsize, scaling, rise, cid,
                                           ncs, graphicstate,
                                           tj_index=tj_index, tj_pos=ix,
-                                          glyph_ixs=g_ixs)
+                                          glyph_ixs=g_ixs, is_cid=is_cid)
 
                     if cid == 32 and wordspace:
                         x += wordspace
@@ -131,7 +136,8 @@ class PDFTextDevice(PDFDevice):
 
     def render_string_vertical(self, seq, matrix, pos,
                                font, fontsize, scaling, charspace, wordspace,
-                               rise, dxscale, ncs, graphicstate, tj_index=None):
+                               rise, dxscale, ncs, graphicstate,
+                               tj_index=None, is_cid=False):
         (x, y) = pos
 
         needcharspace = False
@@ -161,7 +167,7 @@ class PDFTextDevice(PDFDevice):
                                           font, fontsize, scaling, rise, cid,
                                           ncs, graphicstate,
                                           tj_index=tj_index, tj_pos=ix,
-                                          glyph_ixs=g_ixs)
+                                          glyph_ixs=g_ixs, is_cid=is_cid)
 
                     if cid == 32 and wordspace:
                         y += wordspace
@@ -170,7 +176,7 @@ class PDFTextDevice(PDFDevice):
         return (x, y)
 
     def render_char(self, matrix, font, fontsize, scaling, rise, cid, ncs, graphicstate,
-                    tj_index=None, tj_pos=None, glyph_ixs=None):
+                    tj_index=None, tj_pos=None, glyph_ixs=None, is_cid=False):
         return 0
 
 

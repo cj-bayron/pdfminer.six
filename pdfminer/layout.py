@@ -228,7 +228,7 @@ class LTChar(LTComponent, LTText):
 
     def __init__(self, matrix, font, fontsize, scaling, rise,
                  text, textwidth, textdisp, ncs, graphicstate,
-                 tj_index=None, tj_pos=None, glyph_ixs=None):
+                 tj_index=None, tj_pos=None, glyph_ixs=None, is_cid=False):
         LTText.__init__(self)
         self._text = text
         self.matrix = matrix
@@ -241,6 +241,7 @@ class LTChar(LTComponent, LTText):
         self.tj_index = tj_index
         self.tj_pos = tj_pos
         self.glyph_ixs = glyph_ixs
+        self.is_cid = is_cid
 
         # compute the boundary rectangle.
         if font.is_vertical():

@@ -112,7 +112,8 @@ class PDFLayoutAnalyzer(PDFTextDevice):
             evenodd, gstate.scolor, gstate.ncolor))
         return
 
-    def render_char(self, matrix, font, fontsize, scaling, rise, cid, ncs, graphicstate, tj_index=None, tj_pos=None, glyph_ixs=None):
+    def render_char(self, matrix, font, fontsize, scaling, rise, cid, ncs, graphicstate,
+                    tj_index=None, tj_pos=None, glyph_ixs=None, is_cid=False):
         try:
             text = font.to_unichr(cid)
             assert isinstance(text, six.text_type), str(type(text))
@@ -121,7 +122,7 @@ class PDFLayoutAnalyzer(PDFTextDevice):
         textwidth = font.char_width(cid)
         textdisp = font.char_disp(cid)
         item = LTChar(matrix, font, fontsize, scaling, rise, text, textwidth, textdisp, ncs, graphicstate,
-                      tj_index=tj_index, tj_pos=tj_pos, glyph_ixs=glyph_ixs)
+                      tj_index=tj_index, tj_pos=tj_pos, glyph_ixs=glyph_ixs, is_cid=is_cid)
         self.cur_item.add(item)
         return item.adv
 
