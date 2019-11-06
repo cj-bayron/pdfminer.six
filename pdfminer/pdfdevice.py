@@ -66,7 +66,7 @@ class PDFDevice(object):
 ##
 class PDFTextDevice(PDFDevice):
 
-    def render_string(self, textstate, seq, ncs, graphicstate):
+    def render_string(self, textstate, seq, ncs, graphicstate, tj_index=None):
         matrix = utils.mult_matrix(textstate.matrix, self.ctm)
         font = textstate.font
         fontsize = textstate.fontsize
@@ -80,56 +80,97 @@ class PDFTextDevice(PDFDevice):
         if font.is_vertical():
             textstate.linematrix = self.render_string_vertical(
                 seq, matrix, textstate.linematrix, font, fontsize,
-                scaling, charspace, wordspace, rise, dxscale, ncs, graphicstate)
+                scaling, charspace, wordspace, rise, dxscale, ncs, graphicstate,
+                tj_index=tj_index)
         else:
             textstate.linematrix = self.render_string_horizontal(
                 seq, matrix, textstate.linematrix, font, fontsize,
-                scaling, charspace, wordspace, rise, dxscale, ncs, graphicstate)
+                scaling, charspace, wordspace, rise, dxscale, ncs, graphicstate,
+                tj_index=tj_index)
         return
 
     def render_string_horizontal(self, seq, matrix, pos,
                                  font, fontsize, scaling, charspace, wordspace,
-                                 rise, dxscale, ncs, graphicstate):
+                                 rise, dxscale, ncs, graphicstate, tj_index=None):
         (x, y) = pos
         needcharspace = False
-        for obj in seq:
+        for ix, obj in enumerate(seq):
             if utils.isnumber(obj):
                 x -= obj*dxscale
                 needcharspace = True
             else:
-                for cid in font.decode(obj):
+                if len(obj) == 2*len(font.decode(obj)):
+                    two_byte_glyph = True
+                elif len(obj) == len(font.decode(obj)):
+                    two_byte_glyph = False
+                else:
+                    raise Exception("Unhandled case for glyphs! Check implementation!")
+
+
+                for g_ix, cid in enumerate(font.decode(obj)):
+                    if two_byte_glyph:
+                        g_ixs = [2*g_ix, (2*g_ix)+1]
+                    else:
+                        g_ixs = [g_ix]
+
                     if needcharspace:
                         x += charspace
+
                     x += self.render_char(utils.translate_matrix(matrix, (x, y)),
                                           font, fontsize, scaling, rise, cid,
-                                          ncs, graphicstate)
+                                          ncs, graphicstate,
+                                          tj_index=tj_index, tj_pos=ix,
+                                          glyph_ixs=g_ixs)
+
                     if cid == 32 and wordspace:
                         x += wordspace
+
                     needcharspace = True
+
         return (x, y)
 
     def render_string_vertical(self, seq, matrix, pos,
                                font, fontsize, scaling, charspace, wordspace,
-                               rise, dxscale, ncs, graphicstate):
+                               rise, dxscale, ncs, graphicstate, tj_index=None):
         (x, y) = pos
+
         needcharspace = False
-        for obj in seq:
+        for ix, obj in enumerate(seq):
             if utils.isnumber(obj):
                 y -= obj*dxscale
                 needcharspace = True
             else:
-                for cid in font.decode(obj):
+                if len(obj) == 2*len(font.decode(obj)):
+                    two_byte_glyph = True
+                elif len(obj) == len(font.decode(obj)):
+                    two_byte_glyph = False
+                else:
+                    raise Exception("Unhandled case for glyphs! Check implementation!")
+                    
+
+                for g_ix, cid in enumerate(font.decode(obj)):
+                    if two_byte_glyph:
+                        g_ixs = [2*g_ix, (2*g_ix)+1]
+                    else:
+                        g_ixs = [g_ix]
+
                     if needcharspace:
                         y += charspace
+
                     y += self.render_char(utils.translate_matrix(matrix, (x, y)),
                                           font, fontsize, scaling, rise, cid,
-                                          ncs, graphicstate)
+                                          ncs, graphicstate,
+                                          tj_index=tj_index, tj_pos=ix,
+                                          glyph_ixs=g_ixs)
+
                     if cid == 32 and wordspace:
                         y += wordspace
+
                     needcharspace = True
         return (x, y)
 
-    def render_char(self, matrix, font, fontsize, scaling, rise, cid, ncs, graphicstate):
+    def render_char(self, matrix, font, fontsize, scaling, rise, cid, ncs, graphicstate,
+                    tj_index=None, tj_pos=None, glyph_ixs=None):
         return 0
 
 

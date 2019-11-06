@@ -386,6 +386,10 @@ class PDFPageInterpreter(object):
         self.scs = self.ncs = None
         if self.csmap:
             self.scs = self.ncs = six.next(six.itervalues(self.csmap))
+
+        # Congrego
+        self.tj_counter = 0
+
         return
 
     def push(self, obj):
@@ -769,7 +773,9 @@ class PDFPageInterpreter(object):
             if settings.STRICT:
                 raise PDFInterpreterError('No font specified!')
             return
-        self.device.render_string(self.textstate, seq, self.ncs, self.graphicstate.copy())
+        self.device.render_string(self.textstate, seq, self.ncs, self.graphicstate.copy(), tj_index=self.tj_counter)
+        # Congrego
+        self.tj_counter += 1
         return
 
     # show

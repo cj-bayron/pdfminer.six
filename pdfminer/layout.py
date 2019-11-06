@@ -227,7 +227,8 @@ class LTAnno(LTItem, LTText):
 class LTChar(LTComponent, LTText):
 
     def __init__(self, matrix, font, fontsize, scaling, rise,
-                 text, textwidth, textdisp, ncs, graphicstate):
+                 text, textwidth, textdisp, ncs, graphicstate,
+                 tj_index=None, tj_pos=None, glyph_ixs=None):
         LTText.__init__(self)
         self._text = text
         self.matrix = matrix
@@ -235,6 +236,12 @@ class LTChar(LTComponent, LTText):
         self.ncs = ncs
         self.graphicstate = graphicstate
         self.adv = textwidth * fontsize * scaling
+        
+        # Congrego: for opcode tracking
+        self.tj_index = tj_index
+        self.tj_pos = tj_pos
+        self.glyph_ixs = glyph_ixs
+
         # compute the boundary rectangle.
         if font.is_vertical():
             # vertical
