@@ -119,10 +119,21 @@ class PDFLayoutAnalyzer(PDFTextDevice):
             assert isinstance(text, six.text_type), str(type(text))
         except PDFUnicodeNotDefined:
             text = self.handle_undefined_char(font, cid)
+
         textwidth = font.char_width(cid)
         textdisp = font.char_disp(cid)
+
+        if is_cid:
+            spacewidth = font.char_width(0)
+            spacedisp = font.char_disp(0)
+        else:
+            spacewidth = font.char_width(32)
+            spacedisp = font.char_disp(32)
+
         item = LTChar(matrix, font, fontsize, scaling, rise, text, textwidth, textdisp, ncs, graphicstate,
-                      tj_index=tj_index, tj_pos=tj_pos, glyph_ixs=glyph_ixs, is_cid=is_cid)
+                      tj_index=tj_index, tj_pos=tj_pos, glyph_ixs=glyph_ixs, is_cid=is_cid,
+                      spacewidth=spacewidth, spacedisp=spacedisp)
+
         self.cur_item.add(item)
         return item.adv
 

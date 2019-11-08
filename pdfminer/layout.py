@@ -228,7 +228,8 @@ class LTChar(LTComponent, LTText):
 
     def __init__(self, matrix, font, fontsize, scaling, rise,
                  text, textwidth, textdisp, ncs, graphicstate,
-                 tj_index=None, tj_pos=None, glyph_ixs=None, is_cid=False):
+                 tj_index=None, tj_pos=None, glyph_ixs=None, is_cid=False,
+                 spacewidth=None, spacedisp=None):
         LTText.__init__(self)
         self._text = text
         self.matrix = matrix
@@ -241,7 +242,10 @@ class LTChar(LTComponent, LTText):
         self.tj_index = tj_index
         self.tj_pos = tj_pos
         self.glyph_ixs = glyph_ixs
-        self.is_cid = is_cid
+        self.is_cid = int(is_cid)
+
+        if spacewidth:
+            self.compute_spacedims(matrix, font, fontsize, scaling, rise, spacewidth, spacedisp)
 
         # compute the boundary rectangle.
         if font.is_vertical():
@@ -264,6 +268,7 @@ class LTChar(LTComponent, LTText):
             ty = descent + rise
             bll = (0, ty)
             bur = (self.adv, ty+height)
+
         (a, b, c, d, e, f) = self.matrix
         self.upright = (0 < a*d*scaling and b*c <= 0)
         (x0, y0) = apply_matrix_pt(self.matrix, bll)
@@ -291,6 +296,45 @@ class LTChar(LTComponent, LTText):
     def is_compatible(self, obj):
         """Returns True if two characters can coexist in the same line."""
         return True
+
+
+    def compute_spacedims(self, matrix, font, fontsize, scaling, rise, spacewidth, spacedisp):
+
+        # compute the boundary rectangle, assuming character is space
+        if font.is_vertical():
+            # vertical
+            width = font.get_width() * fontsize
+
+            (vx, vy) = spacedisp
+            if vx is None:
+                vx = width * 0.5
+            else:
+                vx = vx * fontsize * .001
+
+            vy = (1000 - vy) * fontsize * .001
+            tx = -vx
+            ty = vy + rise
+            bll = (tx, ty + (spacewidth * fontsize * scaling))
+            bur = (tx+width, ty)
+        else:
+            # horizontal
+            height = font.get_height() * fontsize
+            descent = font.get_descent() * fontsize
+            ty = descent + rise
+            bll = (0, ty)
+            bur = (spacewidth * fontsize * scaling, ty+height)
+
+        (a, b, c, d, e, f) = matrix
+        (x0, y0) = apply_matrix_pt(matrix, bll)
+        (x1, y1) = apply_matrix_pt(matrix, bur)
+        if x1 < x0:
+            (x0, x1) = (x1, x0)
+        if y1 < y0:
+            (y0, y1) = (y1, y0)
+        
+        self.spacewidth, self.spaceheight = (x1-x0), (y1-y0)
+
+        return
 
 
 ##  LTContainer
