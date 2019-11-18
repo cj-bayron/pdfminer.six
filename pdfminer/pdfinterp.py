@@ -33,7 +33,12 @@ from .utils import MATRIX_IDENTITY
 
 import six  # Python 2+3 compatibility
 
+from datetime import datetime
+
 log = logging.getLogger(__name__)
+
+TEXT_WHITELIST = ['do_cm', 'do_BT', 'do_Tc', 'do_Tw', 'do_Tz', 'do_TL', 'do_Tf', 'do_Tr', 'do_Ts',
+                  'do_Td', 'do_TD', 'do_Tm', 'do_T_a', 'do_TJ', 'do_Tj', 'do__q', 'do__w']
 
 ##  Exceptions
 ##
@@ -773,7 +778,7 @@ class PDFPageInterpreter(object):
             if settings.STRICT:
                 raise PDFInterpreterError('No font specified!')
             return
-        self.device.render_string(self.textstate, seq, self.ncs, self.graphicstate.copy(), tj_index=self.tj_counter)
+        self.device.render_string(self.textstate, seq, self.ncs, graphicstate=None, tj_index=self.tj_counter)
         # Congrego
         self.tj_counter += 1
         return
@@ -854,9 +859,16 @@ class PDFPageInterpreter(object):
             ctm = (0, 1, -1, 0, y1, -x0)
         else:
             ctm = (1, 0, 0, 1, -x0, -y0)
+        
         self.device.begin_page(page, ctm)
+
+        d = datetime.now()
         self.render_contents(page.resources, page.contents, ctm=ctm)
+        log.warning("render_contents: %s" % (datetime.now() - d))
+
+        d = datetime.now()
         self.device.end_page(page)
+        log.warning("end_page: %s" % (datetime.now() - d))
         return
 
     # render_contents(resources, streams, ctm)
@@ -865,9 +877,17 @@ class PDFPageInterpreter(object):
     def render_contents(self, resources, streams, ctm=MATRIX_IDENTITY):
         log.info('render_contents: resources=%r, streams=%r, ctm=%r',
                  resources, streams, ctm)
+
+        d = datetime.now()
         self.init_resources(resources)
+        log.warning("init_resources: %s" % (datetime.now() - d))
+
         self.init_state(ctm)
+
+        d = datetime.now()
         self.execute(list_value(streams))
+        log.warning("execute: %s" % (datetime.now() - d))
+
         return
 
     def execute(self, streams):
@@ -876,14 +896,21 @@ class PDFPageInterpreter(object):
         except PSEOF:
             # empty page
             return
+
+
         while 1:
             try:
                 (_, obj) = parser.nextobject()
             except PSEOF:
                 break
+
             if isinstance(obj, PSKeyword):
                 name = keyword_name(obj)
                 method = 'do_%s' % name.replace('*', '_a').replace('"', '_w').replace("'", '_q')
+
+                if method not in TEXT_WHITELIST:
+                    continue
+
                 if hasattr(self, method):
                     func = getattr(self, method)
                     nargs = six.get_function_code(func).co_argcount-1
@@ -898,6 +925,8 @@ class PDFPageInterpreter(object):
                 else:
                     if settings.STRICT:
                         raise PDFInterpreterError('Unknown operator: %r' % name)
+
             else:
                 self.push(obj)
+
         return
