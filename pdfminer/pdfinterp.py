@@ -33,7 +33,7 @@ from .utils import MATRIX_IDENTITY
 
 import six  # Python 2+3 compatibility
 
-from datetime import datetime
+# from datetime import datetime
 
 log = logging.getLogger(__name__)
 
@@ -862,13 +862,13 @@ class PDFPageInterpreter(object):
         
         self.device.begin_page(page, ctm)
 
-        d = datetime.now()
+        # d = datetime.now()
         self.render_contents(page.resources, page.contents, ctm=ctm)
-        log.warning("render_contents: %s" % (datetime.now() - d))
+        # log.warning("render_contents: %s" % (datetime.now() - d))
 
-        d = datetime.now()
+        # d = datetime.now()
         self.device.end_page(page)
-        log.warning("end_page: %s" % (datetime.now() - d))
+        # log.warning("end_page: %s" % (datetime.now() - d))
         return
 
     # render_contents(resources, streams, ctm)
@@ -878,15 +878,15 @@ class PDFPageInterpreter(object):
         log.info('render_contents: resources=%r, streams=%r, ctm=%r',
                  resources, streams, ctm)
 
-        d = datetime.now()
+        # d = datetime.now()
         self.init_resources(resources)
-        log.warning("init_resources: %s" % (datetime.now() - d))
+        # log.warning("init_resources: %s" % (datetime.now() - d))
 
         self.init_state(ctm)
 
-        d = datetime.now()
+        # d = datetime.now()
         self.execute(list_value(streams))
-        log.warning("execute: %s" % (datetime.now() - d))
+        # log.warning("execute: %s" % (datetime.now() - d))
 
         return
 

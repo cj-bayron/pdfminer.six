@@ -227,7 +227,7 @@ class LTAnno(LTItem, LTText):
 class LTChar(LTComponent, LTText):
 
     def __init__(self, matrix, font, fontsize, scaling, rise,
-                 text, textwidth, textdisp, ncs, graphicstate,
+                 text, textwidth, textdisp, ncs, graphicstate=None,
                  tj_index=None, tj_pos=None, glyph_ixs=None, is_cid=False,
                  spacewidth=None, spacedisp=None):
         LTText.__init__(self)
@@ -244,6 +244,7 @@ class LTChar(LTComponent, LTText):
         self.glyph_ixs = glyph_ixs
         self.is_cid = int(is_cid)
 
+        self.spacewidth, self.spaceheight = None, None
         if spacewidth:
             self.compute_spacedims(matrix, font, fontsize, scaling, rise, spacewidth, spacedisp)
 
