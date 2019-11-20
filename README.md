@@ -7,4 +7,5 @@ Fork of PDFMiner.six for Congrego apps
 Added Features
 --------------
 
- * TJ index for each LTChar
+ * Added more location parameters for LTChar
+ * Minor optimization for text processing
